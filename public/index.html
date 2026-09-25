@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docker To-Do</title>
+</head>
+<body>
+  <h1>Docker To-Do List - UPDATED</h1>
+
+  <form id="todoForm">
+    <input id="todoInput" placeholder="Enter a task" required />
+    <button type="submit">Add</button>
+  </form>
+
+  <ul id="todoList"></ul>
+
+  <script>
+    const form = document.getElementById("todoForm");
+    const input = document.getElementById("todoInput");
+    const list = document.getElementById("todoList");
+
+    async function loadTodos() {
+      const res = await fetch("/todos");
+      const todos = await res.json();
+
+      list.innerHTML = "";
+
+      todos.forEach((todo) => {
+        const li = document.createElement("li");
+        li.textContent = todo.text + " ";
+
+        const button = document.createElement("button");
+        button.textContent = "Delete";
+
+        button.onclick = async () => {
+          await fetch("/todos/" + todo._id, {
+            method: "DELETE",
+          });
+          loadTodos();
+        };
+
+        li.appendChild(button);
+        list.appendChild(li);
+      });
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      await fetch("/todos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: input.value,
+        }),
+      });
+
+      input.value = "";
+      loadTodos();
+    });
+
+    loadTodos();
+  </script>
+</body>
+</html>
